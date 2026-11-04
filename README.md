@@ -21,3 +21,7 @@ Each round draws from 1–90 without replacement using browser cryptographic ran
 The shell is cached for later offline use after a successful online visit. Media caches after successful full downloads, so offline video readiness is not guaranteed. Browser voices may require internet on some devices. Test on the actual school device before the event. Fonts have local fallbacks.
 
 Respect reduced-motion preferences. Fullscreen support depends on the browser. Source logo is `logo.svg`.
+
+## British bingo calls
+
+Calls use a school-friendly selection from the supplied British bingo list, with the number spoken after each phrase. 67 retains the special Six! Seven! celebration. Browser speech prefers a locally installed en-GB voice where available. Recorded MP3s, if supplied, take priority and should use the same updated wording.
