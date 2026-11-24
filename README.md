@@ -4,7 +4,7 @@ A festive, teacher-controlled 90-ball bingo show. Static HTML, CSS and JavaScrip
 
 ## Preview
 
-Run `node server.cjs` and open http://localhost:4173. Audio is enabled by the Play/Draw interaction. The supplied ElevenLabs recording has been split into 90 individual MP3s in audio/. The browser speech voice is used only if a recording cannot play; fallback voice quality depends on the device. For the final deep trailer voice, add recordings as `audio/01.mp3` through `audio/90.mp3` (67 gets the special celebration).
+Run `node server.cjs` and open http://localhost:4173. Audio is enabled by the Play/Draw interaction. The calls were recorded by a colleague and split into 90 individual MP3s in audio/. The browser speech voice is used only if a recording cannot play; fallback voice quality depends on the device. For the final deep trailer voice, add recordings as `audio/01.mp3` through `audio/90.mp3` (67 gets the special celebration).
 
 ## Add videos
 
@@ -26,4 +26,4 @@ Respect reduced-motion preferences. Fullscreen support depends on the browser. S
 
 Calls use a school-friendly selection from the supplied British bingo list, with the number spoken after each phrase. 67 retains the special Six! Seven! celebration. Browser speech prefers a locally installed en-GB voice where available. Recorded MP3s, if supplied, take priority and should use the same updated wording.
 
-The 67 clip preserves the additional “let me see those hands” ad-lib from the supplied recording. Playback stops the previous call before repeating a number, when muting, and when leaving the draw screen.
+The 67 clip keeps the full Six! Seven! celebration and ad-lib from the recording. Playback stops the previous call before repeating a number, when muting, and when leaving the draw screen.
