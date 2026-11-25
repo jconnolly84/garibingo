@@ -1,40 +1,41 @@
 /* GariBingo! — a browser-local, 90-ball Christmas game. */
 const app=document.querySelector('#app');
-const KEY='garibingo-v1';
-const roundNames=['The festive opener','Snow much fun','Jingle all the way','The merry midway','Christmas crackers','The grand finale'];
-const icons=['🎄','❄️','🔔','🎁','🌟','🏆'];
+const KEY='garibingo-v2';
+const roundNames=['The festive opener','Snow much fun','The grand finale','Free play'];
+const FREE=3;
+const icons=['🎄','❄️','🏆','🎅'];
 let state=fresh(),sound=true,busy=false,timer=null,videoToken=0;
-function fresh(){return {rounds:Array.from({length:6},()=>({called:[],phase:'new'})),active:0,screen:'home'};}
-try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.rounds)&&saved.rounds.length===6&&saved.rounds.every(r=>Array.isArray(r.called)&&new Set(r.called).size===r.called.length&&r.called.every(n=>Number.isInteger(n)&&n>=1&&n<=90)&&['new','line','house','done'].includes(r.phase))&&Number.isInteger(saved.active)&&saved.active>=0&&saved.active<6){state=saved;state.screen='home';}}catch{}
+function fresh(){return {rounds:Array.from({length:4},()=>({called:[],phase:'new'})),active:0,screen:'home'};}
+try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.rounds)&&saved.rounds.length===4&&saved.rounds.every(r=>Array.isArray(r.called)&&new Set(r.called).size===r.called.length&&r.called.every(n=>Number.isInteger(n)&&n>=1&&n<=90)&&['new','line','house','done'].includes(r.phase))&&Number.isInteger(saved.active)&&saved.active>=0&&saved.active<4){state=saved;state.screen='home';}}catch{}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{toast('Browser saving is unavailable. Keep this tab open.');}}
 function toast(t){const e=document.querySelector('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3500);}
 function machine(){return `<div class="machine-scene" aria-hidden="true"><div class="orbit"></div><span class="star a">✦</span><span class="star b">✧</span><div class="machine"><div class="globe"><div class="cage-line"></div><div class="cage-line two"></div>${[23,8,45,12,90,6,31,54,17,72,39,81].map((n,i)=>`<div class="ball ${['','red','green'][i%3]}" style="left:${35+(i%4)*58}px;top:${58+Math.floor(i/4)*65}px;animation-delay:-${i*.6}s"><span>${n}</span></div>`).join('')}</div><div class="machine-base"><span>THE MAGIC MACHINE</span></div><div class="machine-foot"></div></div><div class="ball red float-ball one"><span>67</span></div><div class="ball green float-ball two"><span>25</span></div><span class="machine-label">A SPIN OF CHRISTMAS MAGIC ↗</span></div>`;}
-function home(){stopCall();state.screen='home';const inProgress=state.rounds.some(r=>['line','house'].includes(r.phase));app.innerHTML=`<section class="hero"><div><span class="eyebrow pill">✦ YOUR CHRISTMAS PARTY STARTS HERE</span><img class="hero-logo" src="logo.svg" alt="GariBingo!"><h1>Big festive fun.<br>A little <em>bingo magic.</em></h1><p>Six rounds. A little suspense. A whole lot of festive cheer. Eyes down for your Christmas bingo spectacular.</p><div class="actions"><button class="primary" id="start">${inProgress?'Back to the festivities':'Let’s play bingo'} <span style="margin-left:22px">↗</span></button><button class="secondary" id="how">How to play</button></div><p class="small-note">TEACHER IN CONTROL. CHRISTMAS CHAOS ENCOURAGED.</p><div class="hero-badges"><span><b>✦</b> 6 festive rounds</span><span><b>◉</b> Classic 90-ball bingo</span><span><b>✓</b> No sign-up needed</span></div></div>${machine()}</section>`;document.querySelector('#start').onclick=()=>inProgress?rounds():playVideo('Intro.mp4','Welcome to GariBingo!','Eyes down. Christmas is about to get competitive.',rounds);document.querySelector('#how').onclick=()=>confirmBox('Eyes down, everyone!','Play using your paper 90-ball tickets. The teacher draws each number. Shout for one complete line, then a full house. The teacher checks the called-number board and confirms each win.',null,'Got it, let’s play');}
-function rounds(){stopCall();state.screen='rounds';save();app.innerHTML=`<section class="section"><div class="section-top"><div><span class="eyebrow">SIX CHANCES FOR CHRISTMAS GLORY</span><h1>Pick your next round<span class="gold">.</span></h1><p>Choose a round, meet the prize, and let the good times roll.</p></div><button class="secondary" id="reset">New event</button></div><div class="round-grid">${state.rounds.map((r,i)=>`<button class="round-card" data-round="${i}" ${r.phase==='done'?'disabled':''}><span class="round-index">0${i+1}</span><span class="round-icon">${icons[i]}</span><span class="eyebrow">ROUND 0${i+1}</span><strong>${roundNames[i]}</strong><small>${r.phase==='done'?'✓ Round complete':r.phase==='new'?'Ready when you are':`Resume · ${r.called.length} numbers called`}</small><span class="arrow">${r.phase==='done'?'✓':'↗'}</span></button>`).join('')}</div><p class="game-note">Progress saves on this browser. Each round starts with a fresh set of 90 numbers.</p></section>`;app.querySelectorAll('[data-round]').forEach(b=>b.onclick=()=>startRound(+b.dataset.round));document.querySelector('#reset').onclick=()=>confirmBox('Start a brand-new event?','This clears every round and all called numbers on this browser.',()=>{state=fresh();save();home();},'Start new event');}
-function startRound(i){state.active=i;const r=state.rounds[i];if(r.phase==='new'){playVideo(`Lineprize${i+1}.mp4`,`Round ${i+1} · The line prize`,'One complete line. One very happy winner.',()=>{r.phase='line';save();game();});}else game();}
-function game(){state.screen='game';save();const r=state.rounds[state.active],last=r.called.at(-1);app.innerHTML=`<section class="section"><div class="game-head"><div class="game-title"><span class="eyebrow">ROUND 0${state.active+1} <span class="gold">✦</span> ${r.phase==='house'?'PLAYING FOR A FULL HOUSE':'PLAYING FOR ONE LINE'}</span><h1>${roundNames[state.active]}<span class="gold">.</span></h1></div><button class="secondary" id="back">← All rounds</button></div><div class="game-layout"><div><div class="draw-stage" id="stage"><div class="big-ball"><span id="current">${last||'?'}</span></div><div class="draw-caption" id="caption">${last?callText(last):'A LITTLE LUCK GOES A LONG WAY'}</div></div><div class="draw-controls"><button class="primary" id="draw" ${r.called.length===90?'disabled':''}>${r.called.length===90?'All 90 balls drawn':'Draw a ball'} <span style="margin-left:20px">↗</span></button><button class="secondary" id="replay" ${last?'':'disabled'} aria-label="Repeat last number">↻ Call</button></div><p class="game-note">${r.phase==='house'?'Every number on the ticket to win.':'One complete row on the ticket to win.'} Check the ticket before confirming.</p><button class="secondary" id="win">${r.phase==='house'?'🏆 Full house win':'✦ Line win confirmed'} →</button></div><div class="board"><div class="board-head"><span>THE NUMBER BOARD</span><b>${r.called.length} / 90 CALLED</b></div><div class="numbers" aria-label="Called number board">${Array.from({length:90},(_,i)=>`<span class="number ${r.called.includes(i+1)?'called':''} ${last===i+1?'latest':''}" aria-label="${i+1}${r.called.includes(i+1)?', called':', not called'}">${i+1}</span>`).join('')}</div><div class="recent">LAST FIVE <span class="gold">${r.called.slice(-5).reverse().join(' · ')||'Your first number is waiting…'}</span></div></div></div></section>`;document.querySelector('#draw').onclick=draw;document.querySelector('#replay').onclick=()=>speak(last);document.querySelector('#back').onclick=rounds;document.querySelector('#win').onclick=()=>{if(!r.called.length){toast('Draw some numbers before confirming a winner.');return;}confirmBox(r.phase==='house'?'Full house checked?':'Got a line winner?','Please check the winning ticket against the number board. Confirm only when you are happy every required number has been called.',()=>{if(r.phase==='line'){r.phase='house';save();playVideo(`Houseprize${state.active+1}.mp4`,'Next up · The full house prize','Same ticket. Same numbers. An even bigger prize.',game);}else{r.phase='done';save();confetti();rounds();toast('Round complete. Congratulations to your winners!');}});};}
+function home(){stopCall();state.screen='home';const inProgress=state.rounds.some(r=>['line','house'].includes(r.phase));app.innerHTML=`<section class="hero"><div><span class="eyebrow pill">✦ YOUR CHRISTMAS PARTY STARTS HERE</span><img class="hero-logo" src="logo.svg" alt="GariBingo!"><h1>Big festive fun.<br>A little <em>bingo magic.</em></h1><p>Three prize rounds, plus free play. A little suspense. A whole lot of festive cheer. Eyes down for your Christmas bingo spectacular.</p><div class="actions"><button class="primary" id="start">${inProgress?'Back to the festivities':'Let’s play bingo'} <span style="margin-left:22px">↗</span></button><button class="secondary" id="how">How to play</button></div><p class="small-note">TEACHER IN CONTROL. CHRISTMAS CHAOS ENCOURAGED.</p><div class="hero-badges"><span><b>✦</b> 3 festive rounds</span><span><b>◉</b> Classic 90-ball bingo</span><span><b>✓</b> No sign-up needed</span></div></div>${machine()}</section>`;document.querySelector('#start').onclick=()=>inProgress?rounds():playVideo('Intro.mp4','Welcome to GariBingo!','Eyes down. Christmas is about to get competitive.',rounds);document.querySelector('#how').onclick=()=>confirmBox('Eyes down, everyone!','Play using your paper 90-ball tickets. The teacher draws each number. Shout for one complete line, then a full house. The teacher checks the called-number board and confirms each win.',null,'Got it, let’s play');}
+function rounds(){stopCall();state.screen='rounds';save();app.innerHTML=`<section class="section"><div class="section-top"><div><span class="eyebrow">THREE CHANCES FOR CHRISTMAS GLORY</span><h1>Pick your next round<span class="gold">.</span></h1><p>Choose a round, meet the prize, and let the good times roll.</p></div><button class="secondary" id="reset">New event</button></div><div class="round-grid">${state.rounds.map((r,i)=>`<button class="round-card${i===FREE?' free':''}" data-round="${i}" ${r.phase==='done'&&i!==FREE?'disabled':''}><span class="round-index">0${i+1}</span><span class="round-icon">${icons[i]}</span><span class="eyebrow">${i===FREE?'NO VIDEOS · STAFF GAMES':`ROUND 0${i+1}`}</span><strong>${roundNames[i]}</strong><small>${i===FREE&&r.phase==='done'?'Tap for a fresh game':r.phase==='done'?'✓ Round complete':r.phase==='new'?'Ready when you are':`Resume · ${r.called.length} numbers called`}</small><span class="arrow">${r.phase==='done'&&i!==FREE?'✓':'↗'}</span></button>`).join('')}</div><p class="game-note">Progress saves on this browser. Each round starts with a fresh set of 90 numbers.</p></section>`;app.querySelectorAll('[data-round]').forEach(b=>b.onclick=()=>startRound(+b.dataset.round));document.querySelector('#reset').onclick=()=>confirmBox('Start a brand-new event?','This clears every round and all called numbers on this browser.',()=>{state=fresh();save();home();},'Start new event');}
+function startRound(i){state.active=i;const r=state.rounds[i];if(i===FREE){if(r.phase==='new'||r.phase==='done'){r.called=[];r.phase='line';}game();return;}if(r.phase==='new'){playVideo(`Lineprize${i+1}.mp4`,`Round ${i+1} · The line prize`,'One complete line. One very happy winner.',()=>{r.phase='line';save();game();});}else game();}
+function game(){state.screen='game';save();const r=state.rounds[state.active],last=r.called.at(-1);app.innerHTML=`<section class="section"><div class="game-head"><div class="game-title"><span class="eyebrow">${state.active===FREE?'FREE PLAY':`ROUND 0${state.active+1}`} <span class="gold">✦</span> ${r.phase==='house'?'PLAYING FOR A FULL HOUSE':'PLAYING FOR ONE LINE'}</span><h1>${roundNames[state.active]}<span class="gold">.</span></h1></div><button class="secondary" id="back">← All rounds</button></div><div class="game-layout"><div><div class="draw-stage" id="stage"><div class="big-ball"><span id="current">${last||'?'}</span></div><div class="draw-caption" id="caption">${last?callText(last):'A LITTLE LUCK GOES A LONG WAY'}</div></div><div class="draw-controls"><button class="primary" id="draw" ${r.called.length===90?'disabled':''}>${r.called.length===90?'All 90 balls drawn':'Draw a ball'} <span style="margin-left:20px">↗</span></button><button class="secondary" id="replay" ${last?'':'disabled'} aria-label="Repeat last number">↻ Call</button></div><p class="game-note">${r.phase==='house'?'Every number on the ticket to win.':'One complete row on the ticket to win.'} Check the ticket before confirming.</p><button class="secondary" id="win">${r.phase==='house'?'🏆 Full house win':'✦ Line win confirmed'} →</button><div class="recent"><span class="recent-label">LAST FIVE</span><div class="recent-balls">${r.called.slice(-5).reverse().map((n,i)=>`<span class="recent-ball${i===0?' newest':''}">${n}</span>`).join('')||'<span class="gold">Your first number is waiting…</span>'}</div></div></div><div class="board"><div class="board-head"><span>THE NUMBER BOARD</span><b>${r.called.length} / 90 CALLED</b></div><div class="numbers" aria-label="Called number board">${Array.from({length:90},(_,i)=>`<span class="number ${r.called.includes(i+1)?'called':''} ${last===i+1?'latest':''}" aria-label="${i+1}${r.called.includes(i+1)?', called':', not called'}">${i+1}</span>`).join('')}</div></div></div></section>`;document.querySelector('#draw').onclick=draw;document.querySelector('#replay').onclick=()=>speak(last);document.querySelector('#back').onclick=rounds;document.querySelector('#win').onclick=()=>{if(!r.called.length){toast('Draw some numbers before confirming a winner.');return;}confirmBox(r.phase==='house'?'Full house checked?':'Got a line winner?','Please check the winning ticket against the number board. Confirm only when you are happy every required number has been called.',()=>{if(r.phase==='line'){r.phase='house';save();if(state.active===FREE){game();toast('Line confirmed. Now playing for a full house!');return;}playVideo(`Houseprize${state.active+1}.mp4`,'Next up · The full house prize','Same ticket. Same numbers. An even bigger prize.',game);}else{r.phase='done';save();confetti();rounds();toast('Round complete. Congratulations to your winners!');}});};}
 function randomIndex(length){const a=new Uint32Array(1),limit=Math.floor(4294967296/length)*length;do{crypto.getRandomValues(a);}while(a[0]>=limit);return a[0]%length;}
 function draw(){if(busy)return;const r=state.rounds[state.active],remaining=Array.from({length:90},(_,i)=>i+1).filter(n=>!r.called.includes(n));if(!remaining.length)return;busy=true;app.querySelectorAll('button').forEach(b=>b.disabled=true);const stage=document.querySelector('#stage');stage.classList.add('drawing');document.querySelector('#caption').textContent='MIXING UP A LITTLE CHRISTMAS MAGIC…';tone();let ticks=0;timer=setInterval(()=>{document.querySelector('#current').textContent=remaining[randomIndex(remaining.length)];if(++ticks>=16){clearInterval(timer);const n=remaining[randomIndex(remaining.length)];r.called.push(n);save();busy=false;game();document.querySelector('#stage').classList.add('revealed');speak(n);if(n===67){document.querySelector('#stage').classList.add('hype');document.querySelector('#stage').insertAdjacentHTML('afterbegin','<div class="hype-text">SIX… SEVEN! 🙌</div>');confetti();setTimeout(()=>{document.querySelector('#stage')?.classList.remove('hype');document.querySelector('.hype-text')?.remove();},4500);}}},75);}
-// British bingo calls selected from the supplied list, with school-friendly alternatives.
+// Bingo calls worded exactly as in the recorded audio clips (shown under the ball and used by the speech fallback).
 const BINGO_CALLS = [
-  "Kelly's eye",
-  "One little duck",
-  "Cup of tea",
+  "As low as we go",
+  "One little duck, quack quack",
+  "Cup of tea, yes please",
   "Knock at the door",
   "Man alive",
-  "Half a dozen",
-  "Lucky seven",
+  "In a fix",
+  "Lucky seven, cha-ching",
   "Garden gate",
   "Doctor's orders",
-  "Downing Street",
+  "Prime Minister's den",
   "Legs eleven",
   "One dozen",
   "Unlucky for some",
-  "Valentine's Day",
-  "Young and keen",
-  "Sweet sixteen",
+  "Oh look, it's Valentine's Day",
+  "One and five",
+  "Sweet",
   "Dancing Queen",
-  "Coming of age",
+  "Keys to the car, brum-brum",
   "Goodbye teens",
   "One score",
   "Key of the door",
@@ -46,7 +47,7 @@ const BINGO_CALLS = [
   "Gateway to heaven",
   "In a state",
   "Rise and shine",
-  "Dirty Gertie",
+  "My friend Gertie, oh hello love",
   "Get up and run",
   "Buckle my shoe",
   "All the threes",
@@ -55,57 +56,57 @@ const BINGO_CALLS = [
   "Three dozen",
   "More than eleven",
   "Christmas cake",
-  "All the steps",
+  "The thirty-nine steps",
   "Life begins",
   "Time for fun",
-  "Winnie-the-Pooh",
-  "Down on your knees",
+  "Winnie the Pooh",
+  "Four and three",
   "All the fours",
   "Halfway there",
   "Up to tricks",
   "Four and seven",
   "Four dozen",
-  "PC",
+  "Four and nine",
   "Half a century",
   "Tweak of the thumb",
-  "Deck of cards",
-  "Here comes Herbie",
+  "Weeks in a year",
+  "Oh look, here comes Herbie",
   "Clean the floor",
   "Snakes alive",
-  "Shotts bus",
+  "Five and six",
   "Heinz varieties",
   "Make them wait",
-  "Brighton line",
+  "It's the Brighton line",
   "Five dozen",
   "Baker's bun",
   "Tickety-boo",
-  "Tickle me",
-  "Red raw",
-  "Sixty-five",
-  "Clickety click",
-  "Six! Seven!",
-  "Saving grace",
-  "Either way up",
+  "Six and three",
+  "That famous Beatles song",
+  "Six and five",
+  "Clickety-click",
+  "Six and seven",
+  "Six and eight",
+  "Any which way up",
   "Three score and ten",
   "Bang on the drum",
   "Six dozen",
-  "Under the tree",
+  "Queen bee",
   "Hit the floor",
-  "Strive and strive",
-  "Trombones",
-  "Sunset Strip",
+  "Seven and five",
+  "Seven and six, oh, it's the wrong way round",
+  "Sunset strip",
   "Heaven's gate",
   "One more time",
-  "Eight and blank",
+  "Blind",
   "Stop and run",
   "Straight on through",
-  "Time for tea",
-  "Give me more",
+  "Time for tea, oh, lovely",
+  "Seven dozen",
   "Staying alive",
-  "Between the sticks",
-  "Torquay in Devon",
+  "Eight and six",
+  "Torquay and Devon",
   "All the eights",
-  "Nearly there",
+  "Almost there",
   "Top of the shop"
 ];
 function callText(n){if(!Number.isInteger(n)||n<1||n>90)return '';return n===67?'Six! Seven! Sixty-seven!':`${BINGO_CALLS[n-1]} — ${n}`;}

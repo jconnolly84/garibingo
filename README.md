@@ -8,7 +8,7 @@ Run `node server.cjs` and open http://localhost:4173. Audio is enabled by the Pl
 
 ## Add videos
 
-Place `Intro.mp4`, `Lineprize1.mp4` through `Lineprize6.mp4`, and `Houseprize1.mp4` through `Houseprize6.mp4` in `videos/`. Names are case sensitive on GitHub. Missing videos show a three-second placeholder. Existing videos advance when they finish, with a Continue button for the teacher.
+Place `Intro.mp4`, `Lineprize1.mp4` through `Lineprize3.mp4`, and `Houseprize1.mp4` through `Houseprize3.mp4` in `videos/`. The fourth card, Free play, never plays videos and starts a fresh game each time it is picked after finishing (used for the staff games). Names are case sensitive on GitHub. Missing videos show a three-second placeholder. Existing videos advance when they finish, with a Continue button for the teacher.
 
 ## Publish on GitHub Pages
 
@@ -24,6 +24,6 @@ Respect reduced-motion preferences. Fullscreen support depends on the browser. S
 
 ## British bingo calls
 
-Calls use a school-friendly selection from the supplied British bingo list, with the number spoken after each phrase. 67 retains the special Six! Seven! celebration. Browser speech prefers a locally installed en-GB voice where available. Recorded MP3s, if supplied, take priority and should use the same updated wording.
+The call shown under the ball is worded exactly as in each recorded clip (no adult-themed calls). The same list is used by the speech fallback. 67 retains the special Six! Seven! celebration. Browser speech prefers a locally installed en-GB voice where available. Recorded MP3s, if supplied, take priority and should use the same updated wording.
 
 The 67 clip keeps the full Six! Seven! celebration and ad-lib from the recording. Playback stops the previous call before repeating a number, when muting, and when leaving the draw screen.
