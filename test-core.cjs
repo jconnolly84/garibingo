@@ -22,7 +22,7 @@ setImmediate(()=>{assert.equal(spoken.text,'Two little ducks — 22');assert.equ
 // Three prize rounds plus a video-free Free play round that can be replayed.
 const fp=vm.createContext({...ctx,document:{querySelector(s){if(!nodes.has(s))nodes.set(s,node());return nodes.get(s)}}});vm.runInContext(fs.readFileSync('app.js','utf8'),fp);
 assert.equal(vm.runInContext('state.rounds.length',fp),4);assert.equal(vm.runInContext('roundNames[3]',fp),'Free play');
-vm.runInContext("sound=false;let videos=0;playVideo=()=>videos++;startRound(3)",fp);assert.equal(vm.runInContext('state.rounds[3].phase',fp),'line');assert.equal(vm.runInContext('videos',fp),0);
+vm.runInContext("sound=false;let videos=[];playVideo=(f,a,b,next)=>{videos.push(f);next();};startRound(3)",fp);assert.equal(vm.runInContext('state.rounds[3].phase',fp),'line');assert.deepEqual([...vm.runInContext('videos',fp)],['FreeLine.mp4']);
 vm.runInContext("state.rounds[3].phase='done';state.rounds[3].called=[1,2];startRound(3)",fp);assert.equal(vm.runInContext('state.rounds[3].called.length',fp),0);
-vm.runInContext("state.rounds[0]={called:[],phase:'new'};startRound(0)",fp);assert.equal(vm.runInContext('videos',fp),1);
-console.log('PASS: 3 prize rounds with videos, Free play has no videos and restarts fresh.');
+vm.runInContext("state.rounds[0]={called:[],phase:'new'};startRound(0)",fp);assert.equal(vm.runInContext('videos.at(-1)',fp),'Lineprize1.mp4');
+console.log('PASS: 3 prize rounds with videos, Free play uses generic videos and restarts fresh.');

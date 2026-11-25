@@ -8,7 +8,11 @@ Run `node server.cjs` and open http://localhost:4173. Audio is enabled by the Pl
 
 ## Add videos
 
-Place `Intro.mp4`, `Lineprize1.mp4` through `Lineprize3.mp4`, and `Houseprize1.mp4` through `Houseprize3.mp4` in `videos/`. The fourth card, Free play, never plays videos and starts a fresh game each time it is picked after finishing (used for the staff games). Names are case sensitive on GitHub. Missing videos show a three-second placeholder. Existing videos advance when they finish, with a Continue button for the teacher.
+Place `Intro.mp4`, `Lineprize1.mp4` through `Lineprize3.mp4`, and `Houseprize1.mp4` through `Houseprize3.mp4` in `videos/`. The fourth card, Free play (staff games), plays the generic `FreeLine.mp4` and `FreeHouse.mp4` instead of prize videos, and starts a fresh game each time it is picked after finishing.
+
+## Music and sound effects
+
+The vocal theme (`audio/theme-vocal.mp3`) loops on the home screen. The instrumental (`audio/theme-instrumental.mp3`) loops on the round picker and, more quietly, on the draw screen, where it dips while each number is called. Music pauses during videos. The 🎵 button turns music on or off (remembered on this browser) without muting calls, videos or effects; the ♫ button mutes everything. Game sound effects (draw ticks, ball reveal chime, button clicks, win fanfares) are synthesised in the browser. Names are case sensitive on GitHub. Missing videos show a three-second placeholder. Existing videos advance when they finish, with a Continue button for the teacher.
 
 ## Publish on GitHub Pages
 
